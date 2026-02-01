@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Regalos - Cumpleaños</title>
+    <style>
+        /* Mismo estilo bonito que ya tenías */
+        body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #FFF8E1; color: #333; }
+        h1 { text-align: center; color: #E65100; }
+        .search-box { text-align: center; margin: 20px 0; }
+        #buscar { width: 100%; max-width: 400px; padding: 12px; border-radius: 30px; border: 2px solid #FFCC80; font-size: 16px; outline: none;}
+        
+        .table-container { overflow-x: auto; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #FFCC80; }
+        table { width: 100%; min-width: 600px; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #FF9800; color: white; }
+        
+        .btn-elegir { background: #2196F3; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; }
+        .btn-elegir:hover { background: #1976D2; }
+
+        /* Modales */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; border-top: 10px solid #FF9800; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 5px; }
+        .btn-confirm { background: #FF9800; color: white; width: 100%; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        .btn-close { float: right; font-size: 24px; cursor: pointer; }
+        
+        #loading { text-align: center; padding: 20px; color: #666; }
+    </style>
+</head>
+<body>
+
+    <h1>🎈 ¡Feliz Cumpleaños! 🎈</h1>
+    
+    <div class="search-box">
+        <input type="text" id="buscar" placeholder="🔍 Buscar regalo..." oninput="filtrarRegalos()">
+    </div>
+
+    <div id="loading">Cargando lista de regalos...</div>
+
+    <div class="table-container" id="tablaContainer" style="display:none;">
+        <table id="tablaRegalos">
+            <thead><tr><th>Regalo</th><th>Descripción</th><th></th></tr></thead>
+            <tbody id="cuerpoTabla"></tbody>
+        </table>
+    </div>
+
+    <div id="reservaModal" class="modal">
+        <div class="modal-content">
+            <span class="btn-close" onclick="cerrarModal()">&times;</span>
+            <h2 style="color:#E65100;">Reservar Regalo</h2>
+            <p id="nombreRegaloModal"></p>
+            <input type="hidden" id="selectedRegaloId">
+            <div class="form-group"><label>Nombre:</label><input type="text" id="nombrePersona"></div>
+            <div class="form-group"><label>Correo:</label><input type="email" id="correoPersona"></div>
+            <button class="btn-confirm" onclick="enviarReserva()" id="btnConfirmar">Confirmar</button>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ PEGA AQUÍ TU URL QUE TERMINA EN /exec
+        const API_URL = "https://script.google.com/macros/s/AKfycbx81PAwQx3TWok59XPq6hb__5wm4kLyA_aick2ryBNJUvam0-O835Rb2P4EUJy99Pbg/exec";
+
+        let todosLosRegalos = [];
+
+        // 1. Cargar datos usando FETCH (API)
+        window.onload = function() {
+            fetch(API_URL)
+                .then(response => response.json())
+                .then(data => {
+                    todosLosRegalos = data;
+                    mostrarRegalos(data);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('tablaContainer').style.display = 'block';
+                })
+                .catch(error => {
+                    document.getElementById('loading').innerHTML = "Error cargando: " + error;
+                });
+        };
+
+        function mostrarRegalos(lista) {
+            const tbody = document.getElementById('cuerpoTabla');
+            tbody.innerHTML = '';
+            if(lista.length === 0) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">No hay regalos disponibles</td></tr>'; return;}
+            
+            let html = '';
+            lista.forEach(r => {
+                html += `<tr>
+                    <td><strong>${r.nombre}</strong></td>
+                    <td>${r.descripcion}</td>
+                    <td style="text-align:center"><button class="btn-elegir" onclick="abrirModal('${r.id}', '${r.nombre}')">Elegir</button></td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function filtrarRegalos() {
+            const txt = document.getElementById('buscar').value.toLowerCase();
+            const filtrados = todosLosRegalos.filter(r => r.nombre.toLowerCase().includes(txt) || r.descripcion.toLowerCase().includes(txt));
+            mostrarRegalos(filtrados);
+        }
+
+        function abrirModal(id, nombre) {
+            document.getElementById('reservaModal').style.display = 'flex';
+            document.getElementById('selectedRegaloId').value = id;
+            document.getElementById('nombreRegaloModal').textContent = nombre;
+        }
+        function cerrarModal() { document.getElementById('reservaModal').style.display = 'none'; }
+
+        // 2. Enviar reserva usando FETCH (POST)
+        function enviarReserva() {
+            const id = document.getElementById('selectedRegaloId').value;
+            const nombre = document.getElementById('nombrePersona').value;
+            const correo = document.getElementById('correoPersona').value;
+            const btn = document.getElementById('btnConfirmar');
+
+            if (!nombre || !correo.includes('@')) { alert("Datos incompletos"); return; }
+
+            btn.disabled = true;
+            btn.textContent = "Procesando...";
+
+            // Enviamos los datos a la API
+            fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Importante para evitar errores de red con Google
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({ id: id, nombre: nombre, correo: correo })
+            })
+            .then(() => {
+                // Como usamos no-cors, asumimos éxito si no falla la red
+                // Google Apps Script a veces no devuelve respuesta legible en este modo, 
+                // pero la acción se ejecuta.
+                alert("✅ Solicitud enviada. Si el regalo estaba libre, recibirás un correo de confirmación en breve.");
+                location.reload();
+            })
+            .catch(error => {
+                alert("Error: " + error);
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
