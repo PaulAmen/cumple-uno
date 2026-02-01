@@ -5,34 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Regalos - Cumpleaños</title>
     <style>
-        /* Mismo estilo bonito que ya tenías */
-        body { font-family: 'Segoe UI', sans-serif; margin: 20px; background-color: #FFF8E1; color: #333; }
-        h1 { text-align: center; color: #E65100; }
-        .search-box { text-align: center; margin: 20px 0; }
-        #buscar { width: 100%; max-width: 400px; padding: 12px; border-radius: 30px; border: 2px solid #FFCC80; font-size: 16px; outline: none;}
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #FFF8E1; color: #333; }
+        h1 { text-align: center; color: #E65100; margin-bottom: 5px; }
+        h3 { text-align: center; color: #F57C00; margin-top: 0; font-weight: normal; margin-bottom: 30px;}
         
-        .table-container { overflow-x: auto; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #FFCC80; }
+        .search-box { text-align: center; margin-bottom: 20px; }
+        #buscar { width: 100%; max-width: 400px; padding: 12px 20px; border-radius: 30px; border: 2px solid #FFCC80; font-size: 16px; outline: none; transition: border 0.3s; }
+        #buscar:focus { border-color: #EF6C00; }
+        
+        /* Tabla bonita */
+        .table-container { overflow-x: auto; background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid #FFCC80; }
         table { width: 100%; min-width: 600px; border-collapse: collapse; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #FF9800; color: white; }
+        th { background: #FF9800; color: white; text-transform: uppercase; font-size: 0.9em; }
+        tr:hover { background-color: #fff3e0; }
         
-        .btn-elegir { background: #2196F3; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-        .btn-elegir:hover { background: #1976D2; }
+        .btn-elegir { background: #2196F3; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .btn-elegir:hover { background: #1976D2; transform: scale(1.05); }
 
-        /* Modales */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; border-top: 10px solid #FF9800; }
+        /* Modales (Ventanas emergentes) */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(2px); }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; border-top: 10px solid #FF9800; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: slideUp 0.3s; }
+        @keyframes slideUp { from {transform: translateY(20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
+
         .form-group { margin-bottom: 15px; text-align: left; }
-        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 5px; }
-        .btn-confirm { background: #FF9800; color: white; width: 100%; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; }
-        .btn-close { float: right; font-size: 24px; cursor: pointer; }
+        .form-group label { font-weight: bold; color: #555; display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 8px; }
+        input:focus { border-color: #FF9800; outline: none; }
+
+        .btn-confirm { background: #FF9800; color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .btn-confirm:disabled { background-color: #ccc; cursor: not-allowed; }
+        .btn-close { float: right; font-size: 24px; cursor: pointer; color: #aaa; }
         
-        #loading { text-align: center; padding: 20px; color: #666; }
+        /* Estilos Pantalla Éxito */
+        #success-icon { font-size: 60px; margin-bottom: 15px; }
+        .btn-ok { background-color: #4CAF50; color: white; padding: 10px 30px; border: none; border-radius: 25px; cursor: pointer; font-size: 16px; margin-top: 20px;}
+        
+        #loading { text-align: center; padding: 20px; color: #666; font-style: italic; }
     </style>
 </head>
 <body>
 
     <h1>🎈 ¡Feliz Cumpleaños! 🎈</h1>
+    <h3>Lista de Regalos</h3>
     
     <div class="search-box">
         <input type="text" id="buscar" placeholder="🔍 Buscar regalo..." oninput="filtrarRegalos()">
@@ -42,7 +57,7 @@
 
     <div class="table-container" id="tablaContainer" style="display:none;">
         <table id="tablaRegalos">
-            <thead><tr><th>Regalo</th><th>Descripción</th><th></th></tr></thead>
+            <thead><tr><th>Regalo</th><th>Descripción</th><th>Acción</th></tr></thead>
             <tbody id="cuerpoTabla"></tbody>
         </table>
     </div>
@@ -50,22 +65,33 @@
     <div id="reservaModal" class="modal">
         <div class="modal-content">
             <span class="btn-close" onclick="cerrarModal()">&times;</span>
-            <h2 style="color:#E65100;">Reservar Regalo</h2>
-            <p id="nombreRegaloModal"></p>
+            <h2 style="color:#E65100; margin-top:0;">Reservar Regalo</h2>
+            <p id="nombreRegaloModal" style="color:#888; margin-bottom: 20px;"></p>
             <input type="hidden" id="selectedRegaloId">
-            <div class="form-group"><label>Nombre:</label><input type="text" id="nombrePersona"></div>
-            <div class="form-group"><label>Correo:</label><input type="email" id="correoPersona"></div>
-            <button class="btn-confirm" onclick="enviarReserva()" id="btnConfirmar">Confirmar</button>
+            <div class="form-group"><label>Nombre:</label><input type="text" id="nombrePersona" placeholder="Tu nombre"></div>
+            <div class="form-group"><label>Correo:</label><input type="email" id="correoPersona" placeholder="tucorreo@ejemplo.com"></div>
+            <button class="btn-confirm" onclick="enviarReserva()" id="btnConfirmar">Confirmar Reserva</button>
+        </div>
+    </div>
+
+    <div id="exitoModal" class="modal">
+        <div class="modal-content" style="border-top: 10px solid #4CAF50;">
+            <div id="success-icon">✨🎁✨</div>
+            <h2 style="color:#4CAF50; margin:0;">¡Reserva Exitosa!</h2>
+            <p style="color:#666; font-size: 1.1em; margin-top: 15px; line-height: 1.5;">
+                Gracias por el regalo.<br>
+                <strong>Revisa tu correo</strong> para ver la confirmación.
+            </p>
+            <button class="btn-ok" onclick="location.reload()">Aceptar</button>
         </div>
     </div>
 
     <script>
-        // ⚠️ PEGA AQUÍ TU URL QUE TERMINA EN /exec
+        // 👇 PEGA AQUÍ TU URL (la que termina en /exec)
         const API_URL = "https://script.google.com/macros/s/AKfycbx81PAwQx3TWok59XPq6hb__5wm4kLyA_aick2ryBNJUvam0-O835Rb2P4EUJy99Pbg/exec";
 
         let todosLosRegalos = [];
 
-        // 1. Cargar datos usando FETCH (API)
         window.onload = function() {
             fetch(API_URL)
                 .then(response => response.json())
@@ -76,21 +102,21 @@
                     document.getElementById('tablaContainer').style.display = 'block';
                 })
                 .catch(error => {
-                    document.getElementById('loading').innerHTML = "Error cargando: " + error;
+                    document.getElementById('loading').innerHTML = "<span style='color:red'>Error cargando datos. Intenta recargar.</span>";
                 });
         };
 
         function mostrarRegalos(lista) {
             const tbody = document.getElementById('cuerpoTabla');
             tbody.innerHTML = '';
-            if(lista.length === 0) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">No hay regalos disponibles</td></tr>'; return;}
+            if(lista.length === 0) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px;">🎉 No hay regalos disponibles.</td></tr>'; return;}
             
             let html = '';
             lista.forEach(r => {
                 html += `<tr>
-                    <td><strong>${r.nombre}</strong></td>
-                    <td>${r.descripcion}</td>
-                    <td style="text-align:center"><button class="btn-elegir" onclick="abrirModal('${r.id}', '${r.nombre}')">Elegir</button></td>
+                    <td><strong style="color:#E65100">${r.nombre}</strong></td>
+                    <td style="color:#555">${r.descripcion}</td>
+                    <td style="text-align:center"><button class="btn-elegir" onclick="abrirModal('${r.id}', '${r.nombre.replace(/'/g, "\\'")}')">Elegir</button></td>
                 </tr>`;
             });
             tbody.innerHTML = html;
@@ -109,35 +135,34 @@
         }
         function cerrarModal() { document.getElementById('reservaModal').style.display = 'none'; }
 
-        // 2. Enviar reserva usando FETCH (POST)
         function enviarReserva() {
             const id = document.getElementById('selectedRegaloId').value;
             const nombre = document.getElementById('nombrePersona').value;
             const correo = document.getElementById('correoPersona').value;
             const btn = document.getElementById('btnConfirmar');
 
-            if (!nombre || !correo.includes('@')) { alert("Datos incompletos"); return; }
+            if (!nombre || !correo.includes('@')) { alert("Por favor completa los datos correctamente."); return; }
 
             btn.disabled = true;
             btn.textContent = "Procesando...";
 
-            // Enviamos los datos a la API
             fetch(API_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Importante para evitar errores de red con Google
+                mode: 'no-cors', 
                 headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({ id: id, nombre: nombre, correo: correo })
             })
             .then(() => {
-                // Como usamos no-cors, asumimos éxito si no falla la red
-                // Google Apps Script a veces no devuelve respuesta legible en este modo, 
-                // pero la acción se ejecuta.
-                alert("✅ Solicitud enviada. Si el regalo estaba libre, recibirás un correo de confirmación en breve.");
-                location.reload();
+                // AQUÍ OCURRE LA MAGIA:
+                // 1. Cerramos el formulario
+                document.getElementById('reservaModal').style.display = 'none';
+                // 2. Abrimos el modal de éxito bonito
+                document.getElementById('exitoModal').style.display = 'flex';
             })
             .catch(error => {
-                alert("Error: " + error);
+                alert("Error de conexión: " + error);
                 btn.disabled = false;
+                btn.textContent = "Confirmar Reserva";
             });
         }
     </script>
